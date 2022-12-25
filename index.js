@@ -21,15 +21,31 @@ app.get('/', async (req, res) => {
     })
 });
 
+const storeRecord = async (id, status) => {
+    const d = new Date();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const citiesRef = db.collection('Rfid-Records');
+    const snapshot = await citiesRef.doc().set({
+        time: `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`,
+        date: `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`,
+        card_id: id,
+        status: status
+    });
+    return;
+}
+
+
 app.post('/verify', async (req, res) => {
     const id = req.body.uid;
     console.log(id);
     const citiesRef = db.collection('rfid');
     const snapshot = await citiesRef.where('id', '==', id).get();
     if (snapshot.empty) {
+        storeRecord(id, 'Access Denied');
         res.send({ status: 'Access Denied' })
         return;
     } else {
+        storeRecord(id, 'Access Granted');
         res.send({ status: 'Access Granted' })
     }
 })
